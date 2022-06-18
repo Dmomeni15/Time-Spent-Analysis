@@ -1,0 +1,97 @@
+---
+title: "STA160 Final"
+output: pdf_document
+---
+
+```{r}
+time = read.csv("C:/Users/30583/Desktop/time-log-shortened.csv")
+time = subset(time, select = -c(X) )
+```
+
+```{r}
+plot(time$getup)
+```
+
+```{r}
+plot(time$dinner)
+```
+
+```{r}
+mod = lm(time$total_productive~., data = time)
+summary(mod)
+
+```
+
+wakeup breaks
+
+afterlunch_break
+
+afterdinner_break:wakeup_breaks
+
+
+```{r}
+time = subset(time, select = -c(date,getup,last_productive,bedtime,wakeup,prev_bedtime,sleep_incl_prep))
+```
+
+```{r}
+library(leaps)
+p=23
+n = nrow(time)
+for (i in 1:ncol(time)){
+  time[,i] = as.double(time[,i])
+}
+
+models = regsubsets(total_productive~., data = time, nvmax = p-1)
+summary(models)
+result.sum = summary(models)
+criteria = data.frame( Nvar = 1:(p-1),R2adj = result.sum$adjr2,
+                       CP = result.sum$cp,BIC = result.sum$bic)
+criteria$AIC = criteria$BIC - criteria$Nvar*log(n) + 2*criteria$Nvar #manually add AIC
+which.best.subset = data.frame(
+  R2adj = which.max(result.sum$adjr2),
+  CP = which.min(result.sum$cp),
+  BIC = which.min(result.sum$bic),
+  AIC = which.min(criteria$AIC)
+)
+
+which.best.subset
+```
+
+
+```{r}
+Full = lm(total_productive~.,data =time)
+backward = step(Full, direction='backward', scope=formula(Full), trace=0)
+backward$anova
+summary(backward)
+```
+
+```{r}
+forward = step(Full, direction='forward', scope=formula(Full), trace=0)
+forward$anova
+summary(forward)
+```
+
+```{r}
+both = step(Full, direction='both', scope=formula(Full), trace=0)
+both$anova
+summary(both)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
